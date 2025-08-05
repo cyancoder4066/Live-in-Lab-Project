@@ -1,7 +1,6 @@
 # Live-in-Lab-Project
-AIML-Based Optimization &amp; Integrity of Hydro Power Plant
 
-# Hydro Power Plant Dashboard - Flask Application
+# AIML-Based Optimization &amp; Integrity of Hydro Power Plant Dashboard - Flask Application
 
 This is a Flask conversion of your HTML/CSS/JS hydro power plant dashboard with enhanced backend functionality.
 
