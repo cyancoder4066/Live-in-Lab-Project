@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div>
+        <h1>DASHBOARD</h1>
+    </div>
+    
+    <!-- Power Output Section -->
+    <div class="card">
+        <h3>Current Power Output</h3>
+        <p id="power-output">Loading...</p>
+    </div>
+
+    <!-- Water Flow Section -->
+    <div class="card">
+        <h3>Water Flow</h3>
+        <p id="water-flow">Loading...</p>
+    </div>
+
+    <!-- Integrity Status Section -->
+    <div class="card">
+        <h3>Integrity Status</h3>
+        <p id="integrity-status">Loading...</p>
+    </div>
+
+    <!-- Alert Section -->
+    <div id="alert">
+        <p id="alert-message">System alert will appear here</p>
+    </div>
+
+    <!-- Button to Check Anomalies -->
+    <button onclick="checkAnomalies()">Check Anomalies</button>
+    
+    <!-- Loading indicator -->
+    <div id="loading" class="loading" style="display: none;"></div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+    // Dashboard functionality
+    let updateInterval;
+
+    // Function to update dashboard with real-time data
+    async function updateDashboard() {
+        try {
+            const data = await apiCall('/api/dashboard-data');
+            
+            document.getElementById('power-output').textContent = data.power_output;
+            document.getElementById('water-flow').textContent = data.water_flow;
+            
+            const statusElement = document.getElementById('integrity-status');
+            statusElement.textContent = data.integrity_status;
+            
+            // Update status color
+            if (data.has_anomaly) {
+                statusElement.style.color = 'red';
+                document.getElementById('alert').style.display = 'block';
+                document.getElementById('alert-message').textContent = 'Anomaly detected in system!';
+            } else {
+                statusElement.style.color = '#00FF7F';
+                document.getElementById('alert').style.display = 'none';
+            }
+            
+        } catch (error) {
+            console.error('Error updating dashboard:', error);
+            showAlert('Error updating dashboard data', 'error');
+        }
+    }
+
+    // Function to manually check for anomalies
+    async function checkAnomalies() {
+        showLoading(true);
+        
+        try {
+            const data = await apiCall('/api/check-anomalies', {
+                method: 'POST'
+            });
+            
+            const alertBox = document.getElementById('alert');
+            const alertMessage = document.getElementById('alert-message');
+            const integrityStatusElement = document.getElementById('integrity-status');
+
+            if (data.has_anomaly) {
+                alertBox.style.display = 'block';
+                alertMessage.textContent = data.message;
+                integrityStatusElement.textContent = data.integrity_status;
+                integrityStatusElement.style.color = 'red';
+            } else {
+                alertBox.style.display = 'none';
+                integrityStatusElement.textContent = data.integrity_status;
+                integrityStatusElement.style.color = '#00FF7F';
+            }
+            
+            showAlert(data.message, data.has_anomaly ? 'error' : 'info');
+            
+        } catch (error) {
+            console.error('Error checking anomalies:', error);
+            showAlert('Error checking for anomalies', 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // Initialize dashboard
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initial load
+        updateDashboard();
+        
+        // Set up auto-refresh every 5 seconds
+        updateInterval = setInterval(updateDashboard, 5000);
+    });
+
+    // Clean up interval when page is unloaded
+    window.addEventListener('beforeunload', function() {
+        if (updateInterval) {
+            clearInterval(updateInterval);
+        }
+    });
+</script>
+{% endblock %}

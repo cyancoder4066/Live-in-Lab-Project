@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block additional_css %}
+<style>
+    #map {
+        height: 500px;
+        width: 100%;
+        border-radius: 8px;
+        border: 2px solid #00FF7F;
+    }
+    
+    .map-controls {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .map-info {
+        background-color: #1b1b1b;
+        color: #bcd8e9;
+        padding: 15px;
+        margin-top: 20px;
+        border-radius: 8px;
+        text-align: left;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h1>MAP SYSTEM</h1>
+        <p>Interactive map showing hydro power plant location and crack detection points</p>
+        
+        <!-- Google Map Embed (fallback) -->
+        <div id="google-map" style="margin-bottom: 20px;">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3888.174881129652!2d80.05488582475967!3d12.960658845666618!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a52f596c7fb72c9%3A0x8e7a30529f9ef227!2sSri%20Sairam%20Engineering%20College!5e0!3m2!1sen!2sin!4v1732567704651!5m2!1sen!2sin"
+            width="100%" 
+            height="400" 
+            style="border:0; border-radius: 8px;" 
+            allowfullscreen="" 
+            loading="lazy" 
+            referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+        
+        <!-- Interactive Leaflet Map -->
+        <div id="interactive-map-section">
+            <h3 style="color: #00FF7F;">Interactive Crack Detection Map</h3>
+            <p style="color: #bcd8e9;">Click on the map to mark potential crack locations</p>
+            <div id="map"></div>
+            
+            <div class="map-controls">
+                <button onclick="addRandomCrack()" class="action-button">Simulate Crack Detection</button>
+                <button onclick="clearMarkers()" class="action-button">Clear All Markers</button>
+                <button onclick="toggleMapType()" class="action-button">Toggle Map Type</button>
+            </div>
+        </div>
+        
+        <div class="map-info">
+            <h4 style="color: #00FF7F;">Map Features:</h4>
+            <ul style="color: #bcd8e9;">
+                <li><strong>Red markers:</strong> Detected crack locations</li>
+                <li><strong>Blue markers:</strong> Monitoring stations</li>
+                <li><strong>Green markers:</strong> Safe zones</li>
+                <li><strong>Click anywhere:</strong> Mark new inspection point</li>
+            </ul>
+            <p id="marker-count" style="color: #ff8c00; font-weight: bold;">Total markers: 0</p>
+        </div>
+    </div>
+
+    <!-- Alert Section -->
+    <div id="alert" style="display: none;">
+        <p id="alert-message">Map alert will appear here</p>
+    </div>
+</div>
+
+<!-- Leaflet CSS and JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+    let map;
+    let markers = [];
+    let currentMapType = 'standard';
+    let markerCount = 0;
+
+    // Initialize map
+    function initMap() {
+        // Create map centered on Chennai (near Sri Sairam Engineering College)
+        map = L.map('map').setView([13.0827, 80.2707], 15);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add initial markers
+        addInitialMarkers();
+
+        // Add click event listener
+        map.on('click', onMapClick);
+    }
+
+    // Add initial markers for demo
+    function addInitialMarkers() {
+        // Power plant main location
+        const powerPlantMarker = L.marker([13.0827, 80.2707])
+            .addTo(map)
+            .bindPopup("<b>Hydro Power Plant</b><br>Main facility location");
+        markers.push(powerPlantMarker);
+
+        // Some example crack locations
+        const crack1 = L.marker([13.0837, 80.2717], {
+            icon: createCustomIcon('red')
+        }).addTo(map)
+        .bindPopup("<b>Crack Detected</b><br>Severity: High<br>Date: 2024-01-15");
+        markers.push(crack1);
+
+        const crack2 = L.marker([13.0817, 80.2697], {
+            icon: createCustomIcon('orange')
+        }).addTo(map)
+        .bindPopup("<b>Crack Detected</b><br>Severity: Medium<br>Date: 2024-01-10");
+        markers.push(crack2);
+
+        // Monitoring station
+        const station = L.marker([13.0847, 80.2727], {
+            icon: createCustomIcon('blue')
+        }).addTo(map)
+        .bindPopup("<b>Monitoring Station</b><br>Status: Active<br>Last Update: 2 min ago");
+        markers.push(station);
+
+        updateMarkerCount();
+    }
+
+    // Create custom colored icons
+    function createCustomIcon(color) {
+        return L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+        });
+    }
+
+    // Handle map clicks
+    function onMapClick(e) {
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+        
+        const newMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+            icon: createCustomIcon('green')
+        }).addTo(map)
+        .bindPopup(`<b>Inspection Point</b><br>Coordinates: ${lat}, ${lng}<br>Status: Pending inspection`)
+        .openPopup();
+        
+        markers.push(newMarker);
+        updateMarkerCount();
+        
+        showAlert(`New inspection point marked at: ${lat}, ${lng}`, 'info');
+    }
+
+    // Add random crack for simulation
+    function addRandomCrack() {
+        const baseLatitude = 13.0827;
+        const baseLongitude = 80.2707;
+        const randomLat = baseLatitude + (Math.random() - 0.5) * 0.01;
+        const randomLng = baseLongitude + (Math.random() - 0.5) * 0.01;
+        
+        const severity = ['Low', 'Medium', 'High'][Math.floor(Math.random() * 3)];
+        const colors = { 'Low': 'yellow', 'Medium': 'orange', 'High': 'red' };
+        
+        const crackMarker = L.marker([randomLat, randomLng], {
+            icon: createCustomIcon(colors[severity])
+        }).addTo(map)
+        .bindPopup(`<b>Simulated Crack</b><br>Severity: ${severity}<br>Detected: ${new Date().toLocaleString()}<br>Coordinates: ${randomLat.toFixed(6)}, ${randomLng.toFixed(6)}`)
+        .openPopup();
+        
+        markers.push(crackMarker);
+        updateMarkerCount();
+        
+        showAlert(`New ${severity.toLowerCase()} severity crack detected!`, severity === 'High' ? 'error' : 'info');
+    }
+
+    // Clear all markers except the main power plant
+    function clearMarkers() {
+        // Keep only the first marker (power plant)
+        for (let i = 1; i < markers.length; i++) {
+            map.removeLayer(markers[i]);
+        }
+        markers = markers.slice(0, 1);
+        updateMarkerCount();
+        showAlert('All inspection markers cleared', 'info');
+    }
+
+    // Toggle map type
+    function toggleMapType() {
+        // This is a simplified version - in a real app you'd switch between different tile providers
+        if (currentMapType === 'standard') {
+            // Switch to satellite-like view (using a different tile provider)
+            L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors, SRTM | Map style © <a href="https://opentopomap.org">OpenTopoMap</a>'
+            }).addTo(map);
+            currentMapType = 'topo';
+            showAlert('Switched to topographic view', 'info');
+        } else {
+            // Switch back to standard
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            currentMapType = 'standard';
+            showAlert('Switched to standard view', 'info');
+        }
+    }
+
+    // Update marker count display
+    function updateMarkerCount() {
+        markerCount = markers.length;
+        document.getElementById('marker-count').textContent = `Total markers: ${markerCount}`;
+    }
+
+    // Initialize map when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initMap();
+        showAlert('Interactive map loaded. Click anywhere to add inspection points!', 'info');
+    });
+</script>
+{% endblock %}

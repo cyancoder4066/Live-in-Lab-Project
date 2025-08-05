@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block additional_css %}
+<style>
+    /* Main container styling */
+    .main-container {
+        display: flex;
+        padding: 20px;
+        width: 80%;
+        gap: 20px;
+    }
+
+    /* Content section */
+    .content {
+        flex: 2;
+    }
+    .about-project {
+        background-color: #1b1b1b;
+        padding: 15px;
+        border-radius: 8px;
+        color: #d3d3d3;
+    }
+
+    .about-project p {
+        color: #bcd8e9;
+    }
+
+    .about-project b {
+        color: #59c48e;
+    }
+
+    .about-project h2 {
+        color: #d38124;
+    }
+
+    /* Slideshow container */
+    .slideshow {
+        flex: 1;
+        position: relative;
+        width: 400px;
+        height: 500px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .slideshow img {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        opacity: 0;
+        animation: slideshow 15s infinite;
+    }
+    .slideshow img:nth-child(1) {
+        animation-delay: 0s;
+    }
+    .slideshow img:nth-child(2) {
+        animation-delay: 5s;
+    }
+    .slideshow img:nth-child(3) {
+        animation-delay: 10s;
+    }
+
+    /* Keyframe animation */
+    @keyframes slideshow {
+        0% { opacity: 0; }
+        20% { opacity: 1; }
+        40% { opacity: 0; }
+        100% { opacity: 0; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <!-- Content Section -->
+    <div class="content">
+        <div class="about-project">
+            <h2><u>About</u></h2>
+            <p>This project leverages AI and machine learning to optimize the efficiency and integrity of hydro power plants. The system provides real-time monitoring and anomaly detection, ensuring safe and efficient power generation. Our aim is to enhance predictive maintenance and overall system resilience.</p>
+            <p>Key features include anomaly detection to identify potential issues early, predictive maintenance to extend equipment lifespan, and a crack detection system using image processing for structural safety. By utilizing real-time data from sensors monitoring power output, water flow, and system integrity, the dashboard provides operators with a clear view of plant performance. The intuitive web-based interface with interactive elements ensures operators can make quick, informed decisions, ultimately enhancing efficiency, safety, and sustainability in renewable energy production.</p>
+            <h2><u>Features</u></h2>
+            <p>
+                <b>Crack Detection:</b> This module focuses on identifying structural cracks within the power plant infrastructure. Using image processing and machine learning techniques, it detects and alerts operators about cracks, enabling timely maintenance to ensure structural integrity.
+                <br><br>
+                <b>Mapping System:</b> This module provides a detailed map of the power plant's operational area, allowing for efficient monitoring and navigation. The system includes real-time data overlays to assist in tracking environmental factors and resource flow throughout the facility.
+                <br><br>
+                <b>Surveillance System:</b> This module enhances security and operational oversight. Equipped with cameras and AI for pattern recognition, the surveillance system monitors plant activity, detects anomalies, and assists in maintaining a safe working environment.
+            </p>
+        </div>
+    </div>
+
+    <!-- Slideshow Section -->
+    <div class="slideshow">
+        <img src="{{ url_for('static', filename='images/dam1.jpg') }}" alt="Hydro Plant View 1">
+        <img src="{{ url_for('static', filename='images/dam2.jpg') }}" alt="Hydro Plant View 2">
+        <img src="{{ url_for('static', filename='images/dam3.jpg') }}" alt="Hydro Plant View 3">
+    </div>
+</div>
+{% endblock %}
+
+{% block additional_js %}
+<script>
+    // Any additional JavaScript for the home page can go here
+    console.log('Home page loaded');
+</script>
+{% endblock %}
